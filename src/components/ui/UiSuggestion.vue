@@ -1,6 +1,6 @@
 <template>
   <b-link :to="user.url" class="rounded suggestion w-100 bg-light d-block">
-    <b-img :src="user.cover" v-if="user.cover != null" class="rounded cover" />
+    <b-img :src="user.cover" v-if="user.cover != null" class="rounded cover" onContextMenu="return false;"  />
     <b-avatar
       :src="user.avatar"
       :text="user.initials"
@@ -21,8 +21,9 @@
       </b-dropdown>
     </div>
     <div class="overflow-hidden w-100 subprofile py-2 pr-2">
-      <ui-username :user="user" :asLink="false" class="text-white" />
-      <div class="text-white small username d-block">
+      <ui-username :user="user" :asLink="false" class="text-white " style="color:white;"  />
+      
+      <div class="text-white small username-white d-block ">
         {{ "@" + user.username }}
       </div>
     </div>
@@ -51,7 +52,7 @@
     right: 0;
     z-index: 0;
     padding-left: calc(100px + 1rem);
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.39);
     border-bottom-left-radius: 0.25rem !important;
     border-bottom-right-radius: 0.25rem !important;
   }

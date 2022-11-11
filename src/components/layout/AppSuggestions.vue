@@ -66,7 +66,9 @@ export default {
         (data) => {
           let users = [];
           for (let obj of data.users) {
-            users.push(new User(obj));
+            if (obj.role == 1){
+              users.push(new User(obj));
+            }
           }
           this.users = users;
           this.$nextTick(function () {

@@ -11,6 +11,7 @@
           </h5>
         </div>
       </b-row>
+      <div v-if="subs[0] == null && !isLoading " class="empty-section"> No subscriptions yet!</div>
       <b-row class="users">
         <b-col
           lg="4"
@@ -30,6 +31,7 @@
       </b-row>
     </b-col>
   </b-row>
+  
 </template>
 <style scoped lang="scss">
 .users {
@@ -38,6 +40,9 @@
     padding: 1rem 0.5rem 0 0.5rem;
     border-left: 1rem transparent;
   }
+}
+.empty-section{
+   text-align: center;margin-top: 20%;font-weight: bold;color: #8a96a3c4;font-size: 1.2rem;line-height: 1.4rem;font-weight: 500;
 }
 </style>
 <script>
@@ -113,10 +118,12 @@ export default {
               } else {
                 continue;
               }
+            } else {
               valid.push(subs[i]);
             }
           }
           this.subs = valid;
+          this.$router.go()
         },
         (errors) => {
           console.log(errors);
@@ -125,7 +132,7 @@ export default {
     },
     subscribe(subscription) {
       this.$post(
-        "/subscribe/" + subscription.sub.id,
+        "/subscriptions/" + subscription.sub.id,
         {},
 
         (data) => {

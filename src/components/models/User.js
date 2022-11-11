@@ -16,8 +16,13 @@ export default class User {
   cover = null;
   role = User.ROLE_USER;
   bio = null;
+  audio_bio = null;
   location = null;
   website = null;
+  instagram = null;
+  twitter = null;
+  snapchat = null;
+  tiktok = null;
   price = 0;
   bundles = [];
   isSubscribed = false;
@@ -33,10 +38,23 @@ export default class User {
     this.cover = data.cover;
     this.role = data.role;
     this.bio = data.bio ? data.bio : null;
+    this.audio_bio = data.audio_bio ? data.audio_bio : null;
     this.location = data.location ? data.location : null;
     this.website = data.website ? data.website : null;
+    this.instagram = data.instagram ? data.instagram : null;
+    this.twitter = data.twitter ? data.twitter : null;
+    this.snapchat = data.snapchat ? data.snapchat : null;
+    this.tiktok = data.tiktok ? data.tiktok : null;
     this.price = data.price ? data.price / 100 : null;
     this.isSubscribed = data.is_subscribed;
+    this.last_seen = data.last_seen ? (new Date(data.last_seen). getTime()) : 0;
+    var currentTimestamp = Date.now();
+    var difference = currentTimestamp - this.last_seen
+    console.log(difference)
+    this.time_difference =  difference >= 24*60*60*1000 ? Math.round(difference/24/60/60/1000) : (difference > 60*60*1000 ? Math.round(difference/60/60/1000) : (difference > 60*1000 ? Math.round(difference/60/1000) : Math.round(difference/1000)))
+    this.hms = difference >= 1.5*24*60*60*1000 ? 'days' : (difference >= 24*60*60*1000 ? 'day' : (difference >= 1.5*60*60*1000 ? 'hours' : (difference >= 60*60*1000 ? 'hour' : (difference >= 1.5*60*1000 ? 'minutes' : ( difference >= 60*1000 ? 'minute' : '')))))
+    this.online_status = (difference < 60*1000)
+
     if (data.bundles) {
       for (let b of data.bundles) {
         this.bundles.push(new Bundle(b));
@@ -45,8 +63,8 @@ export default class User {
   }
 
   get initials() {
-    const a = this.username.charAt(0).toUpperCase();
-    const b = this.username.charAt(1);
+    const a = this.name.charAt(0).toUpperCase();
+    const b = this.name.charAt(1);
     return a + b;
   }
 

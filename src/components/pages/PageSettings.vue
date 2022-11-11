@@ -16,7 +16,7 @@
       </b-row>
       <b-row>
         <div class="bg-light cover w-100 position-relative">
-          <b-img :src="user.cover + '?rnd=' + rnd" v-if="user.cover != null" />
+           <b-img :src="user.cover + '?rnd=' + rnd" v-if="user.cover != null" />
           <div class="buttons">
             <b-button
               variant="icon"
@@ -67,9 +67,17 @@
           />
           <ui-form-textarea
             name="bio"
+            maxlength="250"
             v-model="user.bio"
             :errors="errors"
             :label="$t('general.bio')"
+          />
+          <ui-form-bio-audio-input
+            name="audio_bio"
+            v-model="user.audio_bio"
+            @changeAudio="changeAudio"
+            :errors="errors"
+            :label="'Bio Voice'"
           />
           <ui-form-input
             type="text"
@@ -84,6 +92,34 @@
             v-model="user.website"
             :errors="errors"
             :label="$t('general.website')"
+          />
+          <ui-form-input
+            type="url"
+            name="instagram"
+            v-model="user.instagram"
+            :errors="errors"
+            :label="$t('general.instagram')"
+          />
+          <ui-form-input
+            type="url"
+            name="twitter"
+            v-model="user.twitter"
+            :errors="errors"
+            :label="$t('general.twitter')"
+          />
+          <ui-form-input
+            type="url"
+            name="snapchat"
+            v-model="user.snapchat"
+            :errors="errors"
+            :label="$t('general.snapchat')"
+          />
+          <ui-form-input
+            type="url"
+            name="tiktok"
+            v-model="user.tiktok"
+            :errors="errors"
+            :label="$t('general.tiktok')"
           />
         </b-form>
       </b-row>
@@ -100,10 +136,13 @@
         </b-card>
       </b-row>
       <b-row>
-        <b-card no-body :header="$t('general.subscription')" class="w-100 m-3">
+        <b-card  no-body :header="$t('general.subscription')" class="w-100 m-3">
           <b-list-group flush>
-            <b-list-group-item to="/settings/price">{{
+            <b-list-group-item v-if="user.isCreator" to="/settings/price">{{
               $t("general.price-bundles")
+            }}</b-list-group-item>
+            <b-list-group-item v-if="!user.isCreator" to="/payouts">{{
+              $t("general.become")
             }}</b-list-group-item>
           </b-list-group>
         </b-card>
@@ -163,6 +202,7 @@
 import User from "../models/User";
 import UiFormInput from "../ui/UiFormInput.vue";
 import UiFormTextarea from "../ui/UiFormTextarea.vue";
+import UiFormBioAudioInput from "../ui/UiFormBioAudioInput.vue";
 export default {
   data: function () {
     return {
@@ -174,6 +214,7 @@ export default {
   components: {
     UiFormInput,
     UiFormTextarea,
+    UiFormBioAudioInput
   },
   mounted() {
     this.loadUser();
@@ -190,6 +231,9 @@ export default {
         }
       );
     },
+    changeAudio(value) {
+      this.user.audio_bio = value;
+    },
     saveSettings() {
       this.errors = {};
       this.$post(
@@ -198,8 +242,13 @@ export default {
           username: this.user.username,
           name: this.user.name,
           bio: this.user.bio,
+          audio_bio: this.user.audio_bio,
           location: this.user.location,
           website: this.user.website,
+          instagram: this.user.instagram,
+          twitter: this.user.twitter,
+          snapchat: this.user.snapchat,
+          tiktok: this.user.tiktok,
         },
 
         (data) => {

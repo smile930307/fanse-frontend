@@ -12,14 +12,14 @@
         <ui-username :user="post.user" />
         <b-link
           :to="'/' + post.user.username"
-          class="small text-secondary username d-block"
+          class="small text-secondary username d-block small-username" 
           >@{{ post.user.username }}
         </b-link>
       </div>
 
       <div class="d-flex align-items-center">
         <div class="text-muted mr-3">{{ post.ago }}</div>
-        <b-dropdown no-caret right variant="link">
+        <b-dropdown no-caret right variant="link" v-if="this.$store.state.currentUser">
           <template slot="button-content"><i class="bi-three-dots" /></template>
           <b-dropdown-item @click.prevent="copyLink">{{
             $t("general.copy-link-to-post")
@@ -63,9 +63,9 @@
       <b-card-footer>{{ $tc("general.x-votes", [totalVotes]) }}</b-card-footer>
     </b-card>
     <div class="px-3 pb-3 w-100 overflow-hidden nl2br wrap">
-      {{ post.message }}
+      <span class="nl2br" v-html="post.postParsed" />
     </div>
-    <div class="media" v-if="post.media.length > 0 && hasAccess">
+    <div class="media" v-if="(post.media.length > 0 && hasAccess)">
       <div ref="swiper" class="swiper w-100" v-if="post.media.length > 1">
         <div class="swiper-wrapper">
           <div
@@ -73,10 +73,11 @@
             v-for="(item, key) in post.media"
             :key="key"
           >
-            <img
+            <img 
               v-if="item.type == 0"
               :src="item.url"
               @click.prevent="$showPhotoSwipe(post.media, item.id)"
+              onContextMenu="return false;" 
             />
             <div v-else-if="item.type == 1" class="video w-100">
               <video
@@ -96,10 +97,11 @@
         </div>
       </div>
       <div v-else class="w-100">
-        <img
+        <img onContextMenu="return false;" 
           v-if="post.media[0].type == 0"
           :src="post.media[0].url"
           @click.prevent="$showPhotoSwipe(post.media, 0)"
+         
         />
         <div v-else-if="post.media[0].type == 1" class="video w-100">
           <video
@@ -124,7 +126,7 @@
         >/{{ post.media.length }}
       </div>
     </div>
-    <div class="bg-light w-100" v-else-if="!hasAccess">
+    <div class="bg-light w-100" v-else-if="((post.images > 0 || post.videos > 0) && !hasAccess)">
       <b-aspect aspect="4:3">
         <div class="w-100 h-100 position-relative">
           <div class="d-flex align-items-center h-100">
@@ -143,16 +145,36 @@
               </div>
             </div>
           </div>
-          <div
+          <div v-if="post.user.price<1"
             class="position-absolute p-3"
             style="bottom: 0; left: 0; right: 0"
           >
-            <b-button variant="primary" block @click.prevent="unlock">{{
+            <b-button v-if="this.$store.state.currentUser" variant="primary" block @click.prevent="subscribe">{{
               post.isFree
                 ? $t("general.subscribe-to-see")
                 : $t("general.unlock-post-for-x", [post.priceFormatted])
             }}</b-button>
-          </div>
+              <b-button  v-else variant="primary" block :to="'/signup'">{{
+              post.isFree
+                ? $t("general.subscribe-to-see")
+                : $t("general.unlock-post-for-x", [post.priceFormatted])
+            }}</b-button>
+          </div> 
+          <div v-if="post.user.price>1"
+            class="position-absolute p-3"
+            style="bottom: 0; left: 0; right: 0"
+          >
+            <b-button v-if="this.$store.state.currentUser" variant="primary" block @click.prevent="unlock">{{
+              post.isFree
+                ? $t("general.subscribe-to-see")
+                : $t("general.unlock-post-for-x", [post.priceFormatted])
+            }}</b-button>
+            <b-button v-else variant="primary" block :to="'/signup'">{{
+              post.isFree
+                ? $t("general.subscribe-to-see")
+                : $t("general.unlock-post-for-x", [post.priceFormatted])
+            }}</b-button>
+          </div>  
         </div>
       </b-aspect>
     </div>
@@ -276,6 +298,7 @@
 import { Swiper } from "swiper";
 import "swiper/swiper-bundle.css";
 import videojs from "video.js";
+import User from "../models/User";
 import "video.js/dist/video-js.css";
 import Post from "../models/Post";
 import Payment from "../models/Payment";
@@ -300,14 +323,20 @@ export default {
         this.$emit("input", val);
       },
     },
+    username: function () {
+      return this.$route.params.username;
+    },
     isOwner: function () {
       return (
-        this.$store.state.currentUser.isAdmin ||
-        (this.value && this.value.user.id == this.$store.state.currentUser.id)
+        this.$store.state.currentUser && (this.$store.state.currentUser.isAdmin ||
+        (this.value && this.value.user.id == this.$store.state.currentUser.id))
       );
     },
+    currentUser() {
+      return this.$store.state.currentUser;
+    },
     hasAccess: function () {
-      return this.$store.state.currentUser.isAdmin || this.post.hasAccess;
+      return this.$store.state.currentUser && (this.$store.state.currentUser.isAdmin || this.post.hasAccess);
     },
     totalVotes() {
       let total = 0;
@@ -319,6 +348,14 @@ export default {
   },
   mounted() {
     this.init();
+  },
+  watch: {
+    username: function (oldV, newV) {
+      if (oldV && newV && oldV != newV) {
+        this.reset();
+        this.loadUser();
+      }
+    },
   },
   methods: {
     init() {
@@ -421,6 +458,104 @@ export default {
           console.log(errors);
         }
       );
+    },
+    loadPosts() {
+      this.isLoading = true;
+      if (this.$store.state.token) {
+        this.$get(
+          "/posts/user/" +
+            this.post.user.id +
+            "?page=" +
+            this.page +
+            "&type=0",
+          (data) => {
+            let posts = [...this.posts];
+            for (let obj of data.data) {
+              posts.push(new Post(obj));
+            }
+            this.posts = posts;
+            this.hasMore = data.next_page_url != null;
+            this.isLoading = true;
+          },
+          (errors) => {
+            console.log(errors);
+          }
+        );
+      } else {
+        this.$get(
+          "/posts/guest/" +
+            this.post.user.id +
+            "?page=" +
+            this.page +
+            "&type=0",
+          (data) => {
+            let posts = [...this.posts];
+            for (let obj of data.data) {
+              posts.push(new Post(obj));
+            }
+            this.posts = posts;
+            this.hasMore = data.next_page_url != null;
+            this.isLoading = true;
+          },
+          (errors) => {
+            console.log(errors);
+          }
+        );
+      }
+      
+    },
+    loadUser() {
+      if (this.$store.state.token){
+        this.$get(
+          "/users/" + this.post.user.username,
+          (data) => {
+            this.post.user = new User(data);
+            this.loadPosts();
+          },
+          (errors) => {
+            console.log(errors);
+          }
+        );
+      } else {
+        this.$get(
+          "/users/guest/" + this.post.user.username,
+          (data) => {
+            this.post.user = new User(data);
+            this.loadPosts();
+          },
+          (errors) => {
+            console.log(errors);
+          }
+        );
+      }
+      
+    },
+    subscribe(bundle) {
+      if (this.post.user.isFree) {
+        this.$post(
+          "/subscribe/" + this.post.user.id,
+          {},
+          () => {
+            this.reset();
+            this.loadUser();
+          },
+          (errors) => {
+            console.log(errors);
+          }
+        );
+      } else {
+        this.$buyItem({
+          type: Payment.TYPE_SUBSCRIPTION_NEW,
+          user: this.post.user,
+          bundle: bundle,
+        });
+      }
+    },
+    reset() {
+      this.isLoading = false;
+      this.hasMore = false;
+      this.page = 1;
+      this.posts = [];
     },
     unlock() {
       if (this.post.isFree) {

@@ -4,20 +4,26 @@
       <b-row>
         <b-col lg="3" md="2" sm="2" class="d-none d-sm-block">
           <b-nav vertical class="sticky-top">
-            <b-nav-item v-b-toggle.sidebar>
+            <b-nav-item v-b-toggle.sidebar v-if="this.$store.state.token">
               <b-avatar
                 :text="currentUser.initials"
                 :src="currentUser.avatar"
                 class="bg-secondary text-white"
               />
             </b-nav-item>
-            <b-nav-item to="/" exact>
+            <b-nav-item class ="nav-hover" to="/" exact>
               <div class="icon d-inline-block"><i class="bi-house" /></div>
               <span class="d-none d-lg-inline ml-3">{{
                 $t("general.home")
               }}</span>
             </b-nav-item>
-            <b-nav-item to="/notifications">
+            <b-nav-item class ="nav-hover" :to="currentUser.url" exact v-if="this.$store.state.token">
+              <div class="icon d-inline-block"><i class="bi-person" /></div>
+              <span class="d-none d-lg-inline ml-3">{{
+                $t("general.my-profile")
+              }}</span>
+            </b-nav-item>
+            <b-nav-item class ="nav-hover" to="/notifications" v-if="this.$store.state.token">
               <div class="icon d-inline-block">
                 <i class="bi-bell" />
                 <i class="bi-dot" v-if="updates.notifications > 0" />
@@ -26,7 +32,7 @@
                 $t("general.notifications")
               }}</span>
             </b-nav-item>
-            <b-nav-item to="/messages">
+            <b-nav-item class ="nav-hover" to="/messages" v-if="this.$store.state.token">
               <div class="icon d-inline-block">
                 <i class="bi-chat" />
                 <i class="bi-dot" v-if="updates.messages > 0" />
@@ -35,43 +41,37 @@
                 $t("general.messages")
               }}</span>
             </b-nav-item>
-            <b-nav-item to="/bookmarks" exact>
+            <b-nav-item class ="nav-hover" to="/bookmarks" exact v-if="this.$store.state.token">
               <div class="icon d-inline-block"><i class="bi-bookmark" /></div>
               <span class="d-none d-lg-inline ml-3">{{
                 $t("general.bookmarks")
               }}</span>
             </b-nav-item>
-            <b-nav-item to="/lists">
+            <b-nav-item class ="nav-hover" to="/lists" v-if="this.$store.state.token">
               <div class="icon d-inline-block"><i class="bi-list" /></div>
               <span class="d-none d-lg-inline ml-3">{{
                 $t("general.lists")
               }}</span>
             </b-nav-item>
-            <b-nav-item to="/subscriptions">
+            <b-nav-item  class ="nav-hover" to="/subscriptions" v-if="this.$store.state.token">
               <div class="icon d-inline-block"><i class="bi-heart" /></div>
               <span class="d-none d-lg-inline ml-3">{{
                 $t("general.subscriptions")
               }}</span>
             </b-nav-item>
-            <b-nav-item :to="currentUser.url" exact>
-              <div class="icon d-inline-block"><i class="bi-person" /></div>
-              <span class="d-none d-lg-inline ml-3">{{
-                $t("general.my-profile")
-              }}</span>
-            </b-nav-item>
-            <b-nav-item v-b-toggle.sidebar>
+            <b-nav-item class ="nav-hover" v-b-toggle.sidebar v-if="this.$store.state.token">
               <div class="icon d-inline-block"><i class="bi-three-dots" /></div>
               <span class="d-none d-lg-inline ml-3">{{
                 $t("general.more")
               }}</span>
             </b-nav-item>
-            <b-nav-item>
+            <b-nav-item v-if="this.$store.state.token">
               <b-button
                 class="w-100 d-lg-block d-md-none d-sm-none"
                 :to="currentUser.isCreator ? '/posts/create' : '/payouts'"
                 variant="primary"
-                >{{ $t("general.new-post") }}</b-button
-              >
+                >{{ $t("general.new-post") }}
+              </b-button>
               <b-button
                 class="w-100 d-md-block d-sm-block d-lg-none p-2"
                 :to="currentUser.isCreator ? '/posts/create' : '/payouts'"
@@ -123,7 +123,7 @@
       <b-nav-item to="/" exact>
         <div class="icon d-inline-block"><i class="bi-house" /></div>
       </b-nav-item>
-      <b-nav-item to="/notifications">
+      <b-nav-item to="/notifications" v-if="this.$store.state.token">
         <div class="icon d-inline-block">
           <div class="icon d-inline-block"><i class="bi-bell" /></div>
           <div class="icon d-inline-block">
@@ -131,10 +131,10 @@
           </div>
         </div>
       </b-nav-item>
-      <b-nav-item to="/posts/create">
+      <b-nav-item :to="currentUser.isCreator ? '/posts/create' : '/payouts'" v-if="this.$store.state.token">
         <div class="icon d-inline-block"><i class="bi-plus-circle" /></div>
       </b-nav-item>
-      <b-nav-item to="/messages">
+      <b-nav-item to="/messages" v-if="this.$store.state.token">
         <div class="icon d-inline-block">
           <div class="icon d-inline-block"><i class="bi-chat" /></div>
           <div class="icon d-inline-block">
@@ -142,7 +142,7 @@
           </div>
         </div>
       </b-nav-item>
-      <b-nav-item v-b-toggle.sidebar>
+      <b-nav-item v-b-toggle.sidebar v-if="this.$store.state.token">
         <b-avatar
           :text="currentUser.initials"
           :src="currentUser.avatar"
@@ -165,12 +165,30 @@
     text-align: left;
   }
 }
+
 a.nav-link {
   font-size: 1.2rem;
   line-height: 1.4rem;
   padding: 0.75rem 1rem;
   vertical-align: middle;
+  color :#8a96a3;
 }
+.nav-link.router-link-active {
+    color: #000!important;
+}
+li.nav-hover:hover {
+  color :#000000;
+  background-color: #00aff01a;
+  border-radius: 30px;
+}
+
+
+.nav-item{font-size: 19px;
+    line-height: 24px;
+    font-weight: 500;  
+    padding-top: 5px;
+    padding-bottom: 5px;
+    }
 .icon {
   position: relative;
   font-size: 1.4rem;
@@ -182,6 +200,7 @@ a.nav-link {
     font-size: 3.5rem;
     line-height: 1;
     margin: -1.8rem;
+    color: #8a96a3;
   }
 }
 .footer {

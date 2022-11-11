@@ -90,9 +90,13 @@ export default {
           30: "30%",
           40: "40%",
           50: "50%",
+          60: "60%",
+          70: "70%",
+          80: "80%",
         },
         months: {
           null: this.$t("general.months"),
+          1: this.$tc("general.x-months", 1),
           3: this.$tc("general.x-months", 3),
           6: this.$tc("general.x-months", 6),
           12: this.$tc("general.x-months", 12),

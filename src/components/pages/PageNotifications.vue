@@ -11,6 +11,7 @@
           </h5>
         </div>
       </b-row>
+      <div v-if="notifications[0] == null && !isLoading " class="empty-section"> No notifications yet!</div>
       <b-row
         v-for="(item, index) in notifications"
         :key="index"
@@ -25,7 +26,7 @@
           <b-avatar
             :to="item.items.user.url"
             :text="item.items.user.initials"
-            :src="item.items.user.avatar"
+            :src="item.items.user.avatar + '?rnd=' + rnd"
           />
           <div class="flex-grow-1 ml-2 overflow-hidden">
             <div class="d-flex nowrap w-100">
@@ -56,6 +57,9 @@
     background-color: var(--light);
   }
 }
+.empty-section{
+   text-align: center;margin-top: 50%;font-weight: bold;color: #8a96a3c4;font-size: 1.2rem;line-height: 1.4rem;font-weight: 500;
+}
 </style>
 <script>
 import Notification from "../models/Notification";
@@ -66,6 +70,7 @@ export default {
     return {
       notifications: [],
       page: 1,
+      rnd: Math.random(),
       hasMore: false,
       isLoading: false,
     };
